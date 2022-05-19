@@ -1,4 +1,4 @@
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, screen,ipcMain } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as url from 'url';
@@ -24,7 +24,7 @@ function createWindow(): BrowserWindow {
       contextIsolation: false,  // false if you want to run e2e test with Spectron
     },
   });
-
+ 
   if (serve) {
     const debug = require('electron-debug');
     debug();
@@ -33,8 +33,18 @@ function createWindow(): BrowserWindow {
     win.loadURL('http://localhost:4200');
   } else {
     // Path when running electron executable
-    let pathIndex = './index.html';
+    // fs.writeFile('src\\app\\readwritefile\\write.txt', "new content", { flag: 'a+' },err => {
+    //   if (err) {
+    //     console.error(err);
+    //   }
+    // });
+    // const result = fs.readFileSync('src\\app\\readwritefile\\read.txt', {encoding: 'utf-8'});
+    // console.log(result);
+    const readable = fs.createReadStream(
+      'src\\app\\readwritefile\\read.txt', {encoding: 'utf8'});
+    logChunks(readable);
 
+    let pathIndex = './index.html';
     if (fs.existsSync(path.join(__dirname, '../dist/index.html'))) {
        // Path when running electron in local folder
       pathIndex = '../dist/index.html';
@@ -57,12 +67,27 @@ function createWindow(): BrowserWindow {
 
   return win;
 }
-
+async function logChunks(readable) {
+  for await (const chunk of readable) {
+    console.log(chunk);
+  }
+}
 try {
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
   // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
+
+  const ipc = require('electron').ipcMain;
+  ipc.on('synMessage', (event, args) => {
+   console.log(args);
+   event.returnValue = 'Main said I received your Sync message';
+  })
+  
+  ipc.on('aSynMessage', (event, args) => {
+   console.log(args);
+   event.sender.send('asynReply','Main said: Async message received')
+  })
   app.on('ready', () => setTimeout(createWindow, 400));
 
   // Quit when all windows are closed.

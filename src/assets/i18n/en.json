@@ -7,6 +7,11 @@
       "DETAIL": {
         "TITLE": "Detail page !",
         "BACK_TO_HOME": "Back to Home"
+    },
+    "READWRITE" : {
+      "TITLE": "Read Write page !",
+      "READ_FILE": "Read File",
+      "BACK_TO_HOME": "Back to Home"
     }
   }
 }
